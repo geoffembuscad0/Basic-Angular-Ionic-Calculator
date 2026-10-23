@@ -1,7 +1,7 @@
 {
-  "name": "ionic-app-base",
+  "name": "ionic-angular-calculator-sketch-app",
   "version": "0.0.0",
-  "author": "Ionic Framework",
+  "author": "Geoffrey Embuscado",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
