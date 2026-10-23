@@ -58,10 +58,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   // Sketchpad State
   activeTool = signal<'pen' | 'eraser'>('pen');
-  penColor = signal('#ffffff'); // Chalk white default for blackboard
+  penColor = signal('#1c1c1e'); // Dark ink default
   penSize = signal(3);
   
-  colors = ['#ffffff', '#fde047', '#22d3ee', '#f472b6', '#4ade80'];
+  colors = ['#1c1c1e', '#007aff', '#34c759', '#ff9500', '#ff2d55']; // iOS
   sizes = [2, 5, 10];
 
   constructor() {
@@ -119,7 +119,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     canvas.height = Math.round(rect.height);
 
     // Blackboard background.
-    this.ctx.fillStyle = '#1e293b';
+    this.ctx.fillStyle = '#ffffff'; 
     this.ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Initialize the undo history only when the canvas is usable.
@@ -202,7 +202,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     const pos = this.getEventPos(event);
 
     this.ctx.lineTo(pos.x, pos.y);
-    this.ctx.strokeStyle = this.activeTool() === 'eraser' ? '#1e293b' : this.penColor();
+    this.ctx.strokeStyle = this.activeTool() === 'eraser' ? '#ffffff' : this.penColor();
     this.ctx.lineWidth = this.activeTool() === 'eraser' ? 24 : this.penSize();
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
@@ -271,7 +271,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   clearCanvas() {
     const canvas = this.canvasRef.nativeElement;
-    this.ctx.fillStyle = '#1e293b';
+    if (!this.ctx || canvas.width <= 0 || canvas.height <= 0) return;
+
+    this.ctx.fillStyle = '#ffffff'; // Updated from #1e293b to white
     this.ctx.fillRect(0, 0, canvas.width, canvas.height);
     this.saveState();
   }
