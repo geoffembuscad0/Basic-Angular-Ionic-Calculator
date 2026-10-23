@@ -1,3 +1,138 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
+  <ion-content [fullscreen]="true" class="ion-padding app-container">
+    
+    <div class="main-grid-wrapper">
+      
+      <!-- COLUMN 1: CALCULATOR & HISTORY -->
+      <div class="calculator-pane">
+        <div class="calc-header">
+          <div class="brand">
+            <ion-icon name="calculator-outline" color="primary"></ion-icon>
+            <h2>CalcBoard Duo</h2>
+          </div>
+          <ion-button fill="clear" size="small" (click)="showHistory.set(!showHistory())">
+            <ion-icon name="time-outline" slot="icon-only"></ion-icon>
+            <ion-badge color="tertiary" *ngIf="history().length > 0">{{ history().length }}</ion-badge>
+          </ion-button>
+        </div>
+
+        <!-- History Overlay / Drawer -->
+        <div class="history-drawer" *ngIf="showHistory()">
+          <div class="history-header">
+            <h3>Computation History</h3>
+            <div>
+              <ion-button fill="clear" size="small" color="danger" (click)="clearHistory()">
+                <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" size="small" (click)="showHistory.set(false)">
+                <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <ion-list lines="none" class="history-list">
+            <ion-item *ngFor="let item of history()" (click)="useHistoryItem(item)" button detail="false">
+              <ion-label>
+                <p>{{ item.expression }}</p>
+                <h3>= {{ item.result }}</h3>
+              </ion-label>
+              <span slot="end" class="time-stamp">{{ item.timestamp }}</span>
+            </ion-item>
+            <div class="empty-history" *ngIf="history().length === 0">
+              <p>No recent history</p>
+            </div>
+          </ion-list>
+        </div>
+
+        <!-- Calculator Display Screen -->
+        <div class="display-screen">
+          <div class="equation-preview">{{ equationString() }}</div>
+          <div class="main-result">{{ displayValue() }}</div>
+        </div>
+
+        <!-- Calculator Keypad Grid -->
+        <div class="keypad-grid">
+          <ion-button color="light" expand="block" class="btn-action" (click)="clearAll()">AC</ion-button>
+          <ion-button color="light" expand="block" class="btn-action" (click)="backspace()">
+            <ion-icon name="backspace-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button color="light" expand="block" class="btn-action" (click)="appendOperator('%')">%</ion-button>
+          <ion-button color="primary" expand="block" class="btn-op" (click)="appendOperator('÷')">÷</ion-button>
+
+          <ion-button color="medium" expand="block" (click)="appendNumber('7')">7</ion-button>
+          <ion-button color="medium" expand="block" (click)="appendNumber('8')">8</ion-button>
+          <ion-button color="medium" expand="block" (click)="appendNumber('9')">9</ion-button>
+          <ion-button color="primary" expand="block" class="btn-op" (click)="appendOperator('×')">×</ion-button>
+
+          <ion-button color="medium" expand="block" (click)="appendNumber('4')">4</ion-button>
+          <ion-button color="medium" expand="block" (click)="appendNumber('5')">5</ion-button>
+          <ion-button color="medium" expand="block" (click)="appendNumber('6')">6</ion-button>
+          <ion-button color="primary" expand="block" class="btn-op" (click)="appendOperator('-')">-</ion-button>
+
+          <ion-button color="medium" expand="block" (click)="appendNumber('1')">1</ion-button>
+          <ion-button color="medium" expand="block" (click)="appendNumber('2')">2</ion-button>
+          <ion-button color="medium" expand="block" (click)="appendNumber('3')">3</ion-button>
+          <ion-button color="primary" expand="block" class="btn-op" (click)="appendOperator('+')">+</ion-button>
+
+          <ion-button color="medium" expand="block" class="btn-zero" (click)="appendNumber('0')">0</ion-button>
+          <ion-button color="medium" expand="block" (click)="appendNumber('.')">.</ion-button>
+          <ion-button color="success" expand="block" class="btn-equals" (click)="calculate()">=</ion-button>
+        </div>
+      </div>
+
+      <!-- COLUMN 2: BLACKBOARD / SKETCHPAD (Hidden in Portrait) -->
+      <div class="sketchpad-pane">
+        <div class="sketch-toolbar">
+          <div class="tools-group">
+            <ion-button 
+              [fill]="activeTool() === 'pen' ? 'solid' : 'outline'" 
+              size="small" 
+              (click)="activeTool.set('pen')">
+              <ion-icon name="brush-outline" slot="start"></ion-icon> Pen
+            </ion-button>
+            <ion-button 
+              [fill]="activeTool() === 'eraser' ? 'solid' : 'outline'" 
+              size="small" 
+              color="warning"
+              (click)="activeTool.set('eraser')">
+              Eraser
+            </ion-button>
+          </div>
+
+          <!-- Color Palette (Active only for Pen) -->
+          <div class="color-picker" *ngIf="activeTool() === 'pen'">
+            <span 
+              *ngFor="let col of colors" 
+              [style.background-color]="col" 
+              [class.active]="penColor() === col"
+              (click)="penColor.set(col)">
+            </span>
+          </div>
+
+          <div class="actions-group">
+            <ion-button fill="clear" size="small" (click)="undoCanvas()" title="Undo">
+              <ion-icon name="arrow-undo-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" color="danger" (click)="clearCanvas()" title="Clear Blackboard">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas #sketchCanvas
+            (mousedown)="startDrawing($event)"
+            (mousemove)="draw($event)"
+            (mouseup)="stopDrawing()"
+            (mouseleave)="stopDrawing()"
+            (touchstart)="startDrawing($event)"
+            (touchmove)="draw($event)"
+            (touchend)="stopDrawing()">
+          </canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </ion-content>
 </ion-app>
